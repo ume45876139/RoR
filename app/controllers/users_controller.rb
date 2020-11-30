@@ -1,15 +1,18 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy]
+  before_action :require_user, only: [:edit, :update]
+  before_action :require_same_user, only: [:edit, :update, :destroy]
 
   # GET /users
   # GET /users.json
   def index
-    @users = User.all
+    @users =  User.paginate(page: params[:page], per_page: 5)
   end
 
   # GET /users/1
   # GET /users/1.json
   def show
+    @articles = @user.articles.paginate(page: params[:page], per_page: 5)
   end
 
   # GET /users/new
@@ -26,6 +29,7 @@ class UsersController < ApplicationController
   def create
     @user = User.new(user_params)
     if @user.save
+      session[:user_id] = @user.id
       flash[:notice] = "Welcome to Alpha Blog #{@user.username}, You have saccessfully signup"
       redirect_to articles_path
     else
@@ -45,9 +49,9 @@ class UsersController < ApplicationController
   # PATCH/PUT /users/1
   # PATCH/PUT /users/1.json
   def update
-    if @user.(user_params)
+    if @user.update(user_params)
       flash[:notice] = "Your account information was successfully updated"
-      redirect_to users_path
+      redirect_to @user
     else 
       render 'edit'
     end
@@ -82,4 +86,11 @@ class UsersController < ApplicationController
     def user_params
       params.require(:user).permit(:username, :email, :password)
     end
+
+    def require_same_user
+      if current_user != @user
+        flash[:alert] = "You can only edit your own account"
+        redirect_to @user
+    end
+    
 end
