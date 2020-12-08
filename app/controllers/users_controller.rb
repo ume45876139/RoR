@@ -92,5 +92,5 @@ class UsersController < ApplicationController
         flash[:alert] = "You can only edit your own account"
         redirect_to @user
     end
-    
+  end 
 end
